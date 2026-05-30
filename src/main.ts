@@ -1,56 +1,44 @@
-import { Author } from './models/Author';
-import { Book } from './models/Book';
-import { EBook } from './models/EBook';
-import { Copy } from './models/Copy';
-import { Reader } from './models/Reader';
-import { Library } from './models/Library';
-import { BorrowService } from './services/BorrowService';
-// import { AbstractBook } from './models/AbstractBook';
+import fs from 'fs';
+import { RendererFactory } from './factories/RendererFactory';
+import { Section } from './nodes/Section';
+import { Paragraph } from './nodes/Paragraph';
+import { List } from './nodes/List';
+import { RenderEventPublisher } from './RenderEventPublisher';
+import { RenderLoggerSubscriber } from './subscribers/RenderLoggerSubscriber';
+import { SummaryCollector } from './subscribers/SummaryCollector';
+import { PerformanceSubscriber } from './subscribers/PerformanceSubscriber';
 
-// Створення автора та книг
-const author = new Author('John Doe');
-const book = new Book('The Great Book', 2020, author);
-const ebook = new EBook('Digital Book', 2021, author, 'https://example.com/ebook');
+const [, , format = 'markdown', outputPath = 'output.md'] = process.argv;
 
-// Створення копій
-const copy1 = new Copy(book);
-const copy2 = new Copy(book);
+const logger = new RenderLoggerSubscriber();
+const summary = new SummaryCollector();
+const performanceSubscriber = new PerformanceSubscriber();
 
-// Створення читача
-const reader = new Reader('1', 'Alice');
+RenderEventPublisher.subscribe(logger);
+RenderEventPublisher.subscribe(summary);
+RenderEventPublisher.subscribe(performanceSubscriber);
 
-// Створення бібліотеки та додавання об'єктів
-const library = new Library();
+const structuralPatterns = new Section('Структурні патерни', 1);
 
-library.addAuthor(author);
-library.addBook(book);
-library.addBook(ebook);
-library.addCopy(copy1);
-library.addCopy(copy2);
-library.addReader(reader);
+const mainPatterns = new Section('Основні патерни', 2);
 
-// Створення сервісу позичання
-const borrowService = new BorrowService();
+const composite = new Section('Composite', 2);
+composite.add(new Paragraph('Composite дозволяє згрупувати об’єкти в деревоподібну структуру.'));
+composite.add(new Paragraph('Цей патерн дає змогу однаково працювати з окремими об’єктами та групами.'));
+composite.add(new List(['Component', 'Leaf', 'Composite']));
 
-// Демонстрація позичання
-console.log('Attempting to borrow copy1...');
-const borrowResult1 = borrowService.borrow(reader, copy1);
-console.log(`Borrow result: ${borrowResult1}`);
+const bridge = new Section('Bridge', 2);
+bridge.add(new Paragraph('Bridge розділяє абстракцію та реалізацію, щоб вони могли змінюватися незалежно.'));
+bridge.add(new List(['Abstraction', 'Implementation']));
 
-console.log('Attempting to borrow copy1 again...');
-const borrowResult2 = borrowService.borrow(reader, copy1);
-console.log(`Borrow result: ${borrowResult2}`);
+mainPatterns.add(composite);
+mainPatterns.add(bridge);
+structuralPatterns.add(mainPatterns);
 
-// Демонстрація повернення
-console.log('Attempting to return copy1...');
-borrowService.returnBook(reader, copy1);
-console.log(`Copy1 is available: ${copy1.isCopyAvailable()}`);
+const renderer = RendererFactory.create(format);
+const output = structuralPatterns.render(renderer);
 
-// Демонстрація поліморфізму
-console.log('\nBook descriptions:');
-console.log(book.getDescription());
-console.log(ebook.getDescription());
+fs.writeFileSync(outputPath, output);
 
-// Спроба створити AbstractBook
-// const abstractBook = new AbstractBook('Test', 2022);
-// Повинно викликати помилку компіляції, тому що AbstractBook є abstract class.
+summary.printSummary();
+performanceSubscriber.printTotalTime();

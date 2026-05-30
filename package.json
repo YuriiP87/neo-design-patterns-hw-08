@@ -1,7 +1,13 @@
 {
+  "name": "neo-design-patterns-hw-08",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ts-node ./src/main.ts markdown output.md",
+    "build": "tsc"
+  },
   "devDependencies": {
-    "@types/node": "^25.6.2",
+    "@types/node": "^20.19.41",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^5.0.0"
   }
 }
